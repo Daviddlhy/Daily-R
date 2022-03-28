@@ -5,5 +5,29 @@ output: html_notebook
 
 
 # Introduction
-Dans la data les fichiers Excels sont courants aussi bien comme data d'entrées que comme data d'output.
-Pour utiliser Excels avec R on peut utiliser deux packages: **readxl** et **openxlsx**. C'est celui-ci que j'utilise au quotidien.    
+Le fichier excel est très présent dans le domaine de la data. 
+En effet souvent la data d'entrée est présente dans un fichier excel. Et le livrable d'un projet est souvent un fichier Excel. 
+Pour manipuler/ créer/ modifier des fichiers Excel, R à deux packages: readxl/ openxlsx. Ce le second que j'utilise quotidiennement.
+
+
+# Lecture d'un fichier Excel
+
+Pour lire un fichier excel nous avons besoin de la fonction **read.xlsx()**, comme toutes fonctions qui lit un fichier au format tabulaire, on peut 
+choisir à quelle ligne on commence à lire le fichier, les colonnes que l'on veut garder etc...
+```{r}
+library(openxlsx)
+read.xlsx()
+```
+
+**Important**, si une colonne est au format date la fonction read.xlsx va convertir cette colonne en nombre. Pour palier à ce pb on peut utiliser l'option  detectDates =True pour directement convertir la colonne au format Date de R. Mais je ne suis pas convaincu par cela. 
+Je préfère lire le fichier tel quel, et convertir les colonnes directement avec deux autres fonctions. 
+Et oui le package openxlsx possède les deux fonctions: **convertToDate()** et **convertToDateTime()**. Quand savoir utiliser l'un ou l'autre ? Pour cela il faut regarder le/les format(s) de(s) la/les colonne(s) du fichier excel.
+- Si format sans heures/minutes/sec => convertToDate().
+- Sinon convertToDateTime()
+
+```{r}
+data$col_to_convett <- convertToDate(data$col_to_convett)
+```
+
+
+La fonction ci-dessous ne permet que de lire un onglet d'un fichier excel. Si on veut lire un fichier excel avec tous les onglets on doit utilsier la fonction: **loadWorkbook()**.
