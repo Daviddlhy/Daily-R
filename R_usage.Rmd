@@ -1,0 +1,143 @@
+---
+title: "Daily usage of R"
+output: html_notebook
+---
+
+---
+title: "R-tips"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+# Envoyer un mail via R
+
+
+Pour envoyer un mail via un serveur, il faut utiliser le package **sendmailR** 
+
+```{r}
+# On charge le package. 
+library(sendmailR)
+```
+
+La fonction principal de ce package est sendmail, cette fonction permet d'envoyer un mail. 
+Elle prends comme argument:
+
+- **from**: l'adresse mail de l'envoyeur.
+
+- **to**: l'adresse mail du destinataire.
+
+- **cc**: l'adresse mail du destinataire en copie.
+
+- **bcc**: l'adresse mail du destinataire en copie cachée.
+
+- **subject**: Le sujet du mail.
+
+- **Contrôle**: une liste de paramètres pour le serveur SMTP.
+
+```{r}
+from <- "Ici mail d'envoie"
+to <- "pogo@emxample.fr"
+# cc <- ""
+subject <- "Tutoriel R"
+message <- "Bonjour\n ceci est un tutoriel pour l'envoi de mail via R"
+```
+
+```{r,eval=FALSE}
+sendmail(from=from,
+         to=to,
+         #cc=cc,
+         # bcc = bcc,
+         subject=subject,
+         msg=message,
+         control=list(smtpServer=""))# Ici placer l'adresse du serveur. 
+
+```
+
+En éxécutant le code au-dessus on envoie un mail. Cependant celui-ci n'indique pas l'encoding du texte passé en message. Et il peut être disposé de façon non adéquate. 
+Pour palier à ce problème nous allons écrire le message du mail en html. 
+
+
+```{r}
+message_html <- paste('<!DOCTYPE html>', 
+                  '<html>', 
+                  '<head>', 
+                  '<meta http-equiv=\'Content-Type\' content=\'text/html; charset=utf-8\' />', 
+                  '<meta name=\'viewport\' content=\'width=device-width, initial-scale=0.5\'/>', 
+                  '</head>', 
+                  '<body>',
+                  "<p>Bonjour,<br> 
+Ceci est un mail envoyé via R pour un tutoriel.<br></p>
+<p>
+Cordialement,<br>
+DD.</p>",'</body>',
+                  '</html>')
+
+```
+
+Une fois le message écrit en html, on va créer un objet mime_part
+
+```{r,eval=FALSE}
+body_message <- mime_part(x = message_html)
+# On spécifie le type de l'header
+body_message$headers$`Content-Type` <- "text/html; charset=utf-8"
+```
+
+
+```{r,eval=FALSE}
+sendmail(from=from,
+         to=to,
+         #cc=cc,
+         # bcc = bcc,
+         subject=subject,
+         msg=body_message,
+         control=list(smtpServer=""))
+```
+
+
+Maintenant imaginons que nous voulions envoyer une pièce jointe avec le mail, par exemple de type xlsx.
+Pour cela nous avons besoin d'avoir le chemin d'accès à la pièce jointe.
+
+
+# Utilisation de SQL avec R. 
+Pour utiliser le SQL avec R on va avoir besoin du paclage DBI, et obdc. 
+Le package odbc est nécessaire afin de trouver le bon driver pour  MySQL. 
+Tandis que DBI permet de structurer de façon plus unfiromément, l'utilisation de SQL sur les différentes Base de données: **MySQL**, **MariaDB**.
+
+
+
+## Comment se connecter ? 
+On utilise la fonction de DBI: dbconnect qui prend en argument:
+
+
+```{r}
+DBI::dbConnect(
+    odbc::odbc(), # Utilisation du package odbc pour spécifier le driver à utiliser. 
+    Driver = "MySQL ODBC 8.0 ANSI Driver", # ici driver pour MySQL. 
+    Server = "", #Serveur où se situe la bdd.
+    UID = "", # L'identifiant 
+    PWD = "", # Comme les lettres l'indique le MDP. 
+    Port = , # Le port pour le serveur en int
+    database = "", # Nom de la base que l'on utilise, a priori soit biw3 ou api ou api_read_only. Attention à la bonne adresse.
+    encoding = "windows-1252" # Optionnel spécifié l'encoding de la base. A mettre si on utilise sur Bi-runner pour éviter des pbs avec les accents.
+  )
+```
+
+
+### Comment utiliser les ID via R et SQL ? 
+Une partie importante est de faire des requête SQL avec un filtre notamment sur des id. 
+Par exemple: id_intervention/ id_client/ id_commande ...
+On sait tous filtrer sur un id en particulier:
+
+
+```sql
+SELECT * FROM table
+WHERE id_truc = 1;
+```
+Cependant comment faire quand on a plusieurs ID en même temps ? On connait le **IN**. 
+```sql
+SELECT * from table WHERE id_truc IN (1,2,56,5...)
+```
+Mais comment le faire en R directement ? 
+
+Pour cela on va utiliser le package glue, et notamment sa fonction **glue_sql()**.
