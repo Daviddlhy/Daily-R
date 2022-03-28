@@ -1,0 +1,9 @@
+---
+title: "R et Excel"
+output: html_notebook
+---
+
+
+# Introduction
+Dans la data les fichiers Excels sont courants aussi bien comme data d'entrées que comme data d'output.
+Pour utiliser Excels avec R on peut utiliser deux packages: **readxl** et **openxlsx**. C'est celui-ci que j'utilise au quotidien.    
