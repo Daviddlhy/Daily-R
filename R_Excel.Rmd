@@ -1,6 +1,8 @@
 ---
 title: "R et Excel"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 
@@ -74,6 +76,67 @@ pt_ss_total$addColumnDataGroups("nom_region_insee",addTotal = FALSE)
 pt_ss_total$addRowDataGroups("nom_operateur",addTotal = FALSE
                   )
 pt_ss_total$defineCalculation(calculationName="Nb_station", summariseExpression="n_distinct(id_station_anfr)")
+```
+Les pivots tables peuvent être en output HTML ou Excel. 
+HTML 
+```{r}
 pt_ss_total$renderPivot()
 ```
+
+
+Maintenant comment inclure une telle table dans un fichier excel ? 
+Comment Créer/ modifier un fichier excel ? 
+
+###### Création fichier excel 
+```{r}
+# On crée le workbook.
+output_wb <- createWorkbook(creator = "david",title = "Tutoriel")
+# On ajoute des sheets à ce workbook 
+addWorksheet(wb = output_wb,sheetName = "Exemple_1")
+addWorksheet(wb = output_wb,sheetName = "Exemple_2")
+```
+Maintenant notre workbook comporte 2 feuilles. On peut ajouter des tables dans ces feuilles:
+On doit utiliser la methods **renderPivot()** ou **evaluatePivot()**  puis la méthode  **writeToExcelWorksheet()**.
+
+```{r}
+pt$renderPivot()
+pt$writeToExcelWorksheet(wb = output_wb,# Nom du workbook 
+                         wsName =  "Exemple_1",# Nom du sheet dans lequelle on veut placer la table.
+                         topRowNumber=3, # Où la table commence sur les lignes.
+                         leftMostColumnNumber=3 # Où la table commence sur les colonnes.
+                                  )
+```
+
+###### Comment sauvegarder un fichier workbook excel ? 
+Pour cela on doit utiliser la fonction **saveWorkbook()**.
+Il est important de de noter que cette fonction à le paramètre **overwrite** qui est par défaut à FALSE. Ce booléen permet de réécrire le fichier si celui-ci est déjà écrit. Si False cela produit une erreur.
+```{r}
+saveWorkbook(wb =  output_wb,file = "toto.xlsx" #  Nom du fichier 
+             ,overwrite = TRUE # Booléen, 
+             )
+```
+
+### Tips 
+
+Imaginons que l'on veuille créer plusieurs sheets, voici une manière de le faire
+avec des datas différentes. 
+
+1. On crée un workbook.
+2. On crée un vecteur comportant les noms des onglets/sheets/ feuilles.
+3. On créer une liste contenant les dataframes à ajouter.
+4. On applique la fonction walk avec la fonction addworksheet. 
+5. On applique la fonction walk2 avec la fonction **writeData** ou **writeDataTable**
+
+
+```{r}
+output_wb2 <- createWorkbook()
+names_sheets <- c("Data", "TCD1", "TCD22", "Output")
+data_to_add <- list(dt1,mtcars,iris, faithful)
+purrr::walk(.x = names_sheets, function(x){addWorksheet(wb = output_wb2,x)})
+purrr::walk2(.x = data_to_add, .y = names_sheets, function(x,y){writeData(wb = output_wb2, sheet = y, x)})
+saveWorkbook(wb =  output_wb2,file = "toto.xlsx" #  Nom du fichier 
+             ,overwrite = TRUE # Booléen, 
+             )
+```
+
 
