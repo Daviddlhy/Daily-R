@@ -7,7 +7,7 @@ output: html_notebook
 # Introduction
 Le fichier excel est très présent dans le domaine de la data. 
 En effet souvent la data d'entrée est présente dans un fichier excel. Et le livrable d'un projet est souvent un fichier Excel. 
-Pour manipuler/ créer/ modifier des fichiers Excel, R à deux packages: readxl/ openxlsx. Ce le second que j'utilise quotidiennement.
+Pour manipuler/ créer/ modifier des fichiers Excel, R à deux packages: readxl/ openxlsx. C'est le second que j'utilise quotidiennement.
 
 
 # Lecture d'un fichier Excel
@@ -16,7 +16,7 @@ Pour lire un fichier excel nous avons besoin de la fonction **read.xlsx()**, com
 choisir à quelle ligne on commence à lire le fichier, les colonnes que l'on veut garder etc...
 ```{r}
 library(openxlsx)
-read.xlsx()
+read.xlsx("Data/velib-emplacement-des-stations.xlsx")
 ```
 
 **Important**, si une colonne est au format date la fonction read.xlsx va convertir cette colonne en nombre. Pour palier à ce pb on peut utiliser l'option  detectDates =True pour directement convertir la colonne au format Date de R. Mais je ne suis pas convaincu par cela. 
@@ -31,3 +31,49 @@ data$col_to_convett <- convertToDate(data$col_to_convett)
 
 
 La fonction ci-dessous ne permet que de lire un onglet d'un fichier excel. Si on veut lire un fichier excel avec tous les onglets on doit utilsier la fonction: **loadWorkbook()**.
+
+```{r}
+wb <- openxlsx::loadWorkbook("Data/sites-5g-30062021.xlsx")
+```
+
+On obtient un objet workbook.
+```{r}
+# Pour voir les sheets du workbook
+names(wb)
+# Pour charger une feuille du workbook en dataframe
+dt1 <- readWorkbook(xlsxFile = wb, sheet = "sites-5g-30062021")
+# Noms des colonnes du sheet
+names(dt1)
+```
+
+Souvent dans les analyses, on est amené à effectuer une opération de Group By. 
+En R on peut le faire avec un rendu similaire à python avec la librairie **pivottabler**.
+
+```{r}
+library(pivottabler)
+```
+
+Imaginons que l'on veut calculer le nombre de station par capacité de la sation.
+
+```{r}
+pt <- PivotTable$new()
+pt$addData(dt1) # Ici on indique quel dataframe on utilise 
+pt$addColumnDataGroups("nom_region_insee") # ici la colonne par laquelle on va grouper. 
+pt$addRowDataGroups("nom_operateur") # Si on mettre un groupe pour les lignnes
+pt$defineCalculation(calculationName="Nb_station", summariseExpression="n_distinct(id_station_anfr)") # A noter on peut #
+# définir toute fonction de calcule présente dans dplyr. 
+pt$renderPivot()
+```
+
+On peut remarquer que dans la table ci-dessus nous avons les totaux des lignes et colonnes, ce calcul peut être enlevé via un paramètre **addTotal**.
+
+```{r}
+pt_ss_total <- PivotTable$new()
+pt_ss_total$addData(dt1)
+pt_ss_total$addColumnDataGroups("nom_region_insee",addTotal = FALSE)
+pt_ss_total$addRowDataGroups("nom_operateur",addTotal = FALSE
+                  )
+pt_ss_total$defineCalculation(calculationName="Nb_station", summariseExpression="n_distinct(id_station_anfr)")
+pt_ss_total$renderPivot()
+```
+
