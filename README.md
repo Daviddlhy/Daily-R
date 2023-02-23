@@ -1,5 +1,5 @@
 # Daily-R
-Hello everyone this repo is about what i learnd and used for two years as a 
+Hello everyone this repo is about what i learned and used for Three years as a 
 Data Guy :)
 
 
